@@ -2,7 +2,7 @@ JPT is short for JeopardyGPT and is a small library for applying LLM models
 such as ChatGPT to Jeopardy! trivia data. It was written as an adjunct to
 [this blog post][OLJ] and is not otherwise useful.
 
-[OLJ]: https://www.oranlooney.com/post/angle-addition/
+[OLJ]: https://www.oranlooney.com/post/jeopardy/
 
 
 Most of the interesting code is in `jpt.py`. Several Jupyter notebooks are
