@@ -1,0 +1,15 @@
+label,successes,failures,sample_size,success_rate,standard_error,name
+ken,1924,76,2000,0.962,0.004287731569469769,"Ken Jennings
+(gpt-4-turbo)"
+amy,1856,144,2000,0.928,0.005787877275112819,"Amy Schneider
+(gpt-3.5-fine-tuned)"
+james,1791,209,2000,0.8955,0.006846022677912108,"James Holzhauer
+(gpt-3.5-turbo)"
+brad,1790,210,2000,0.895,0.006860426665274316,"Brad Rutter
+(llama3:70b)"
+mattea,1748,252,2000,0.874,0.007425084887154297,"Mattea Roach
+(llama3:8b + RAG)"
+larissa,1257,743,2000,0.6285,0.010805189722398757,"Larissa Kelly
+(llama3:8b)"
+david,1196,804,2000,0.598,0.01096370368082335,"David Madden
+(llama2:7b)"
