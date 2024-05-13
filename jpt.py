@@ -690,15 +690,29 @@ def plot_evaluations(jeopardy_benchmark_evaluations_df: pd.DataFrame):
     import matplotlib.pyplot as plt
     
     # Plotting the bar chart with error bars
-    plt.figure(figsize=(len(jeopardy_benchmark_evaluations_df)*(12/7), 6))
+    dpi = 96
+    scale = (892/759)
+    plt.figure(figsize=(scale*892/dpi, scale*594/dpi), dpi=dpi)
+
+    # Iterate over the DataFrame to assign colors based on 'name'
+    colors = []
+    for name in jeopardy_benchmark_evaluations_df['name']:
+        if 'gpt' in name.lower():  # Check if 'gpt' is in the name
+            colors.append('lightseagreen')  # Shade of green
+        elif 'llama' in name.lower():  # Check if 'llama' is in the name
+            colors.append('cornflowerblue')  # Shade of blue
+        else:
+            colors.append('gray')  # Default color
     
+    # main bar chart
     plt.bar(
         jeopardy_benchmark_evaluations_df['name'],
         jeopardy_benchmark_evaluations_df['success_rate'],
         yerr=jeopardy_benchmark_evaluations_df['standard_error'] * 1.96, # 95% CI
-        color='lightblue',
+        #color='lightblue',
+        color=colors,
         ecolor='darkblue', # error bar color  
-        width=0.3,
+        width=0.4,
         capsize=10)
     
     # what I love about matplotlib, is how intuitive it is
@@ -706,6 +720,7 @@ def plot_evaluations(jeopardy_benchmark_evaluations_df: pd.DataFrame):
     ax.set_axisbelow(True)
     ax.yaxis.set_ticks(np.linspace(0, 1, 11))
     ax.yaxis.grid(color='gray', which='both', alpha=0.25)
+    ax.tick_params(axis='x', labelsize=9)
     
     # Adding labels and title
     plt.ylim(0, 1)
