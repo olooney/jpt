@@ -26,13 +26,14 @@ HostAgent = Callable[[str, str, str, str], str]
 logger = logging.getLogger(__name__)
 
 CONTESTANT_NAME_MAP = { 
-    'ken': 'Ken Jennings\n(gpt-4-turbo)',
-    'larissa': 'Larissa Kelly\n(llama3:8b)',
-    'david': 'David Madden\n(llama2:7b)',
-    'james': 'James Holzhauer\n(gpt-3.5-turbo)', 
-    'brad': 'Brad Rutter\n(llama3:70b)',
-    'amy': 'Amy Schneider\n(gpt-3.5-fine-tuned)',
-    'mattea': 'Mattea Roach\n(llama3:8b + RAG)',
+    'ken': 'Ken Jennings\ngpt-4-turbo',
+    'larissa': 'Larissa Kelly\nllama3:8b',
+    'david': 'David Madden\nllama2:7b',
+    'james': 'James Holzhauer\ngpt-3.5-turbo', 
+    'brad': 'Brad Rutter\nllama3:70b',
+    'amy': 'Amy Schneider\ngpt-3.5\nfine-tuned',
+    'mattea': 'Mattea Roach\nllama3:8b\nRAG',
+    'cris': 'Cris Pannullo\ngpt-4-o',
 }
 
 JEOPARDY_DATA_DIR = r'D:\Dropbox\data\jeopardy'
@@ -120,6 +121,21 @@ def ken(category: str, clue: str) -> str:
     prompt = jeopardy_question_template.format(**locals())
     chat_response = client.chat.completions.create(
         model="gpt-4-turbo",
+        messages=system_messages+[
+            {"role": "user", "content": prompt}
+        ]
+    )
+    content = chat_response.choices[0].message.content
+    return content
+
+
+@retry_decorator
+def cris(category: str, clue: str) -> str:
+    '''PlayerAgent for GPT-4o. Calls OpenAI.'''
+    
+    prompt = jeopardy_question_template.format(**locals())
+    chat_response = client.chat.completions.create(
+        model="gpt-4o",
         messages=system_messages+[
             {"role": "user", "content": prompt}
         ]
