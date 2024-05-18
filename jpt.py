@@ -33,7 +33,9 @@ CONTESTANT_NAME_MAP = {
     'brad': 'Brad Rutter\nllama3:70b',
     'amy': 'Amy Schneider\ngpt-3.5\nfine-tuned',
     'mattea': 'Mattea Roach\nllama3:8b\nRAG',
-    'cris': 'Cris Pannullo\ngpt-4-o',
+    'cris': 'Cris Pannullo\ngpt-4o',
+    'buzzy': 'Buzzy Cohen\ngpt-4',
+    'austin': 'Austin Rogers\ngpt-4\nRAG',
 }
 
 JEOPARDY_DATA_DIR = r'D:\Dropbox\data\jeopardy'
@@ -113,10 +115,25 @@ def gpt(prompt: str) -> str:
     content = chat_response.choices[0].message.content
     return content
 
+@retry_decorator
+def gpt4(prompt: str) -> str:
+    '''Generic call to OpenAI's API.'''
+
+    chat_response = client.chat.completions.create(
+        model="gpt-4-turbo",
+        temperature=0.0,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    content = chat_response.choices[0].message.content
+    return content
+
 
 @retry_decorator
 def ken(category: str, clue: str) -> str:
-    '''PlayerAgent for GPT-4. Calls OpenAI.'''
+    '''PlayerAgent for GPT-4 Turbo. Calls OpenAI.'''
     
     prompt = jeopardy_question_template.format(**locals())
     chat_response = client.chat.completions.create(
@@ -316,6 +333,57 @@ def mattea(category: str, clue: str) -> str:
         messages=messages
     )
     content = response['message']['content']
+    return content
+
+
+@retry_decorator
+def buzzy(category: str, clue: str) -> str:
+    '''PlayerAgent for GPT-4. Calls OpenAI.'''
+    
+    prompt = jeopardy_question_template.format(**locals())
+    chat_response = client.chat.completions.create(
+        model="gpt-4",
+        messages=system_messages+[
+            {"role": "user", "content": prompt}
+        ]
+    )
+    content = chat_response.choices[0].message.content
+    return content
+
+
+@retry_decorator
+def austin(category: str, clue: str) -> str:
+    '''PlayerAgent implementing the RAG pattern. It only knows the
+    exact answers to questions from before 2011-01-01. It uses llama3:8b,
+    a fast but fairly dumb model, so we can see the bump from RAG clearly.
+    '''
+    
+    # find similar past questions 
+    rag_query = f'CATEGORY: {category}\n{clue}'
+    embeddings_old, jeopardy_old = old_jeopardy()
+    augment_data = brute_force_search(embeddings_old, jeopardy_old, query=rag_query, k=10)
+    augment_json = json.dumps(augment_data)
+
+    # augment the prompt with retrieved questions
+    prompt = jeopardy_question_template.format(**locals())
+
+    # this looks cheesy, but other attempts to embed the RAG context
+    # resulted in Llama3 being confused about which question's were historical
+    # and which was actually being asked. This prompt fixed that.
+    messages = system_messages + [
+        {"role": "user", "content": f"Correct! By the way, here are three historical questions that may help you answer future questions: {augment_json}"},
+        {"role": "assistant", "content": "Thank you, I'll be sure to refer back to those if they help with a question in the future!"},
+        {"role": "user", "content": prompt}
+    ]
+
+    # use a small, fast model for generation
+    chat_response = client.chat.completions.create(
+        model="gpt-4",
+        messages=system_messages+[
+            {"role": "user", "content": prompt}
+        ]
+    )
+    content = chat_response.choices[0].message.content
     return content
 
 
@@ -612,6 +680,7 @@ def jeopardy_benchmark(contestant, dataset, sample_size=3, verbose=False) -> pd.
             print('.', end='', flush=True)
     
     jeopardy_df = pd.DataFrame.from_records(jeopardy_sample)
+    jeopardy_df.insert(0, 'label', contestant.__name__)
 
     return jeopardy_df
 
